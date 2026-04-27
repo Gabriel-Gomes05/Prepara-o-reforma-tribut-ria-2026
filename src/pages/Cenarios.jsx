@@ -8,118 +8,120 @@ const cenarios = [
   {
     id: 'clinica',
     icon: Stethoscope,
-    titulo: 'Clínica Médica',
+    titulo: 'Clinica Medica',
     descricao: 'Consultas, exames e procedimentos privados',
     faturamento: 80000,
     regime: 'presumido',
     tipo: 'servico',
     regimeDif: 'saude',
     cor: 'blue',
-    perfil: 'Lucro Presumido · Serviços · Redução 60% (saúde)',
-    contexto: 'Clínicas médicas privadas têm redução de 60% em CBS e IBS. O grande impacto é a troca do ISS (3%) pelo IBS com redução (7,08%) — carga de serviços aumenta, mas bem abaixo da alíquota plena.',
+    perfil: 'Lucro Presumido · Servicos · Reducao de 60%',
+    contexto: 'No regime pleno, atividades de saude com reducao de 60% continuam com CBS e IBS relevantes, mas abaixo da aliquota cheia. O comparativo considera tributos sobre faturamento, sem efeito liquido adicional de creditos.',
   },
   {
     id: 'escola',
     icon: GraduationCap,
     titulo: 'Escola / Curso',
-    descricao: 'Ensino básico, médio, superior ou EAD credenciado',
+    descricao: 'Ensino basico, medio, superior ou EAD credenciado',
     faturamento: 60000,
     regime: 'presumido',
     tipo: 'servico',
     regimeDif: 'educacao',
     cor: 'purple',
-    perfil: 'Lucro Presumido · Serviços · Redução 60% (educação)',
-    contexto: 'Serviços de educação formal têm redução de 60%. A transição é especialmente importante para o planejamento de reajuste de mensalidades.',
+    perfil: 'Lucro Presumido · Servicos · Reducao de 60%',
+    contexto: 'A educacao formal tem reducao de 60% no regime pleno de CBS e IBS. O impacto real deve ser combinado com politica de reajuste e estrutura de custos da instituicao.',
   },
   {
     id: 'farmacia',
     icon: Pill,
-    titulo: 'Farmácia',
-    descricao: 'Venda de medicamentos e produtos de saúde',
+    titulo: 'Farmacia',
+    descricao: 'Venda de medicamentos e produtos de saude',
     faturamento: 120000,
     regime: 'simples',
     tipo: 'produto',
+    simplesAnexo: 'I',
     regimeDif: 'medicamentos',
     cor: 'green',
-    perfil: 'Simples Nacional · Produtos · Redução 60% (medicamentos)',
-    contexto: 'Farmácias do Simples têm composição do DAS alterada a partir de 2029. Medicamentos têm redução de 60% — benefício que se amplifica no regime pleno (2033).',
+    perfil: 'Simples Nacional · Anexo I · Produtos',
+    contexto: 'Para optantes do Simples, o regime permanece preservado. O cenario respeita o DAS estimado pela faixa efetiva do Anexo I, sem migracao automatica para CBS e IBS plenos.',
   },
   {
     id: 'comercio',
     icon: ShoppingCart,
-    titulo: 'Comércio Varejista',
-    descricao: 'Loja de roupas, calçados, eletro, utilidades',
+    titulo: 'Comercio Varejista',
+    descricao: 'Loja de roupas, calcados, eletro e utilidades',
     faturamento: 50000,
     regime: 'simples',
     tipo: 'produto',
+    simplesAnexo: 'I',
     regimeDif: 'nenhum',
     cor: 'orange',
-    perfil: 'Simples Nacional · Produtos · Alíquota plena',
-    contexto: 'Varejistas no Simples têm estabilidade até 2028. A partir de 2029, ICMS dentro do DAS vai sendo convertido para IBS. O crédito financeiro pleno do IBS beneficia quem tem muitos insumos.',
+    perfil: 'Simples Nacional · Anexo I · Produtos',
+    contexto: 'No Simples Nacional, a empresa continua no DAS. O comparativo preserva o regime e evita superestimar a carga como se a empresa migrasse para CBS e IBS plenos.',
   },
   {
     id: 'ti',
     icon: Laptop,
     titulo: 'Empresa de TI / Consultoria',
-    descricao: 'Desenvolvimento de software, consultoria, SaaS',
+    descricao: 'Desenvolvimento de software, consultoria e SaaS',
     faturamento: 100000,
     regime: 'presumido',
     tipo: 'servico',
     regimeDif: 'nenhum',
     cor: 'indigo',
-    perfil: 'Lucro Presumido · Serviços · Alíquota plena',
-    contexto: 'Serviços de TI em alíquota plena sentirão o maior impacto: ISS de 3% vira IBS de 17,7%. A não-cumulatividade plena ajuda empresas que contratam muitos serviços externos.',
+    perfil: 'Lucro Presumido · Servicos · Aliquota plena',
+    contexto: 'Servicos sem reducao setorial tendem a enfrentar o maior impacto no regime pleno. O comparativo mostra a carga bruta sobre faturamento; em empresas com muitos creditos o resultado liquido pode mudar.',
   },
   {
     id: 'transporte',
     icon: Truck,
-    titulo: 'Transportadora Coletiva',
+    titulo: 'Transporte Coletivo',
     descricao: 'Transporte coletivo de passageiros urbano ou intermunicipal',
     faturamento: 200000,
     regime: 'presumido',
     tipo: 'servico',
     regimeDif: 'transporte',
     cor: 'yellow',
-    perfil: 'Lucro Presumido · Serviços · Redução 60% (transporte coletivo)',
-    contexto: 'Transporte coletivo de passageiros tem redução de 60%. Frete de cargas não tem redução — avaliar separadamente.',
+    perfil: 'Lucro Presumido · Servicos · Reducao de 60%',
+    contexto: 'O transporte coletivo de passageiros tem reducao de 60% no regime pleno. Frete de cargas e servicos fora desse enquadramento exigem analise separada.',
   },
   {
     id: 'industria',
     icon: ShoppingBag,
-    titulo: 'Indústria / Fabricante',
-    descricao: 'Fabricação de produtos para revenda ou distribuição',
+    titulo: 'Industria / Fabricante',
+    descricao: 'Fabricacao de produtos para revenda ou distribuicao',
     faturamento: 300000,
     regime: 'real',
     tipo: 'produto',
     regimeDif: 'nenhum',
     cor: 'red',
-    perfil: 'Lucro Real · Produtos · Alíquota plena',
-    contexto: 'Indústrias no Lucro Real se beneficiam muito do crédito financeiro pleno — poderão creditar CBS/IBS de todos os insumos. O cálculo aqui mostra alíquotas brutas sem os créditos.',
+    perfil: 'Lucro Real · Produtos · Aliquota plena',
+    contexto: 'Na industria em Lucro Real, o comparativo bruto pode parecer mais pesado, mas o aproveitamento de creditos de insumos pode reduzir de forma relevante a carga liquida na operacao real.',
   },
   {
     id: 'cultura',
     icon: Music,
-    titulo: 'Produção Cultural / Audiovisual',
-    descricao: 'Shows, espetáculos, produtoras, streaming nacional',
+    titulo: 'Producao Cultural / Audiovisual',
+    descricao: 'Shows, espetaculos, produtoras e conteudo nacional',
     faturamento: 40000,
     regime: 'presumido',
     tipo: 'servico',
     regimeDif: 'cultura',
     cor: 'pink',
-    perfil: 'Lucro Presumido · Serviços · Redução 40% (cultura)',
-    contexto: 'Produções culturais nacionais têm redução de 40%. Atenção: a redução se aplica apenas ao conteúdo nacional certificado.',
+    perfil: 'Lucro Presumido · Servicos · Reducao de 40%',
+    contexto: 'A reducao de 40% para atividades culturais depende do enquadramento legal especifico. O cenario assume operacao elegivel e comparacao de tributos sobre faturamento.',
   },
 ]
 
 const corMap = {
-  blue:   { bg: 'bg-blue-50',   border: 'border-blue-200',   icon: 'text-blue-600',  badge: 'bg-blue-100 text-blue-700'   },
-  purple: { bg: 'bg-purple-50', border: 'border-purple-200', icon: 'text-purple-600',badge: 'bg-purple-100 text-purple-700'},
-  green:  { bg: 'bg-green-50',  border: 'border-green-200',  icon: 'text-green-600', badge: 'bg-green-100 text-green-700'  },
-  orange: { bg: 'bg-orange-50', border: 'border-orange-200', icon: 'text-orange-600',badge: 'bg-orange-100 text-orange-700'},
-  indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', icon: 'text-indigo-600',badge: 'bg-indigo-100 text-indigo-700'},
-  yellow: { bg: 'bg-yellow-50', border: 'border-yellow-200', icon: 'text-yellow-600',badge: 'bg-yellow-100 text-yellow-700'},
-  red:    { bg: 'bg-red-50',    border: 'border-red-200',    icon: 'text-red-600',   badge: 'bg-red-100 text-red-700'     },
-  pink:   { bg: 'bg-pink-50',   border: 'border-pink-200',   icon: 'text-pink-600',  badge: 'bg-pink-100 text-pink-700'   },
+  blue: { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'text-blue-600', badge: 'bg-blue-100 text-blue-700' },
+  purple: { bg: 'bg-purple-50', border: 'border-purple-200', icon: 'text-purple-600', badge: 'bg-purple-100 text-purple-700' },
+  green: { bg: 'bg-green-50', border: 'border-green-200', icon: 'text-green-600', badge: 'bg-green-100 text-green-700' },
+  orange: { bg: 'bg-orange-50', border: 'border-orange-200', icon: 'text-orange-600', badge: 'bg-orange-100 text-orange-700' },
+  indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', icon: 'text-indigo-600', badge: 'bg-indigo-100 text-indigo-700' },
+  yellow: { bg: 'bg-yellow-50', border: 'border-yellow-200', icon: 'text-yellow-600', badge: 'bg-yellow-100 text-yellow-700' },
+  red: { bg: 'bg-red-50', border: 'border-red-200', icon: 'text-red-600', badge: 'bg-red-100 text-red-700' },
+  pink: { bg: 'bg-pink-50', border: 'border-pink-200', icon: 'text-pink-600', badge: 'bg-pink-100 text-pink-700' },
 }
 
 function CenarioCard({ c }) {
@@ -128,12 +130,18 @@ function CenarioCard({ c }) {
   const cor = corMap[c.cor]
   const Icon = c.icon
 
+  const options = useMemo(() => ({
+    tipo: c.tipo,
+    simplesAnexo: c.simplesAnexo,
+    receitaBruta12m: c.faturamento * 12,
+  }), [c])
+
   const { atual, novo, diff, diffPct } = useMemo(() => {
-    const a = calcularAtual(c.faturamento, c.regime, c.tipo)
-    const n = calcularNovo(c.faturamento, c.regimeDif)
+    const a = calcularAtual(c.faturamento, c.regime, c.tipo, options)
+    const n = calcularNovo(c.faturamento, c.regime, c.regimeDif, options)
     const d = n.total - a.total
     return { atual: a, novo: n, diff: d, diffPct: a.total > 0 ? ((d / a.total) * 100).toFixed(1) : 0 }
-  }, [c])
+  }, [c, options])
 
   return (
     <div className={`bg-white rounded-xl border-2 ${aberto ? cor.border : 'border-slate-200'} shadow-sm transition-all hover:shadow-md`}>
@@ -167,14 +175,13 @@ function CenarioCard({ c }) {
         <div className="px-5 pb-5 border-t border-slate-100 pt-4 space-y-4">
           <p className="text-sm text-slate-600 leading-relaxed">{c.contexto}</p>
 
-          {/* Comparativo */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-slate-50 rounded-lg p-4">
-              <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Sistema Atual / mês</p>
-              {atual.linhas.map((l) => (
-                <div key={l.label} className="flex justify-between text-sm py-0.5">
-                  <span className="text-slate-600">{l.label}</span>
-                  <span className="font-medium">{fmt(l.valor)}</span>
+              <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Regime atual / mes</p>
+              {atual.linhas.map((linha) => (
+                <div key={linha.label} className="flex justify-between text-sm py-0.5">
+                  <span className="text-slate-600">{linha.label}</span>
+                  <span className="font-medium">{fmt(linha.valor)}</span>
                 </div>
               ))}
               <div className="border-t border-slate-200 mt-2 pt-2 flex justify-between font-bold">
@@ -184,11 +191,11 @@ function CenarioCard({ c }) {
               <p className="text-xs text-slate-400 mt-1">{fmtPct(atual.total / c.faturamento)} do faturamento</p>
             </div>
             <div className={`rounded-lg p-4 ${diff > 0 ? 'bg-red-50' : diff < 0 ? 'bg-green-50' : 'bg-slate-50'}`}>
-              <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Novo Sistema / mês</p>
-              {novo.linhas.map((l) => (
-                <div key={l.label} className="flex justify-between text-sm py-0.5">
-                  <span className="text-slate-600">{l.label}</span>
-                  <span className="font-medium">{fmt(l.valor)}</span>
+              <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">{c.regime === 'simples' ? 'Simples preservado / mes' : 'Regime pleno / mes'}</p>
+              {novo.linhas.map((linha) => (
+                <div key={linha.label} className="flex justify-between text-sm py-0.5">
+                  <span className="text-slate-600">{linha.label}</span>
+                  <span className="font-medium">{fmt(linha.valor)}</span>
                 </div>
               ))}
               <div className="border-t border-slate-200 mt-2 pt-2 flex justify-between font-bold">
@@ -199,29 +206,24 @@ function CenarioCard({ c }) {
             </div>
           </div>
 
-          {/* Diferença */}
           <div className={`rounded-lg p-4 flex items-center justify-between ${diff > 0 ? 'bg-red-50 border border-red-200' : diff < 0 ? 'bg-green-50 border border-green-200' : 'bg-slate-50 border border-slate-200'}`}>
             <div>
-              <p className="text-xs text-slate-500">Diferença mensal</p>
+              <p className="text-xs text-slate-500">Diferenca mensal</p>
               <p className={`text-xl font-black ${diff > 0 ? 'text-red-600' : diff < 0 ? 'text-green-600' : 'text-slate-600'}`}>
                 {diff > 0 ? '+' : ''}{fmt(diff)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-500">Diferença anual</p>
+              <p className="text-xs text-slate-500">Diferenca anual</p>
               <p className={`text-xl font-black ${diff > 0 ? 'text-red-600' : diff < 0 ? 'text-green-600' : 'text-slate-600'}`}>
                 {diff > 0 ? '+' : ''}{fmt(diff * 12)}
               </p>
             </div>
           </div>
 
-          {/* Ação */}
-          <button
-            onClick={() => navigate('/calculadora')}
-            className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 font-medium"
-          >
+          <button onClick={() => navigate('/calculadora')} className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 font-medium">
             <ArrowRight size={16} />
-            Personalizar na Calculadora
+            Personalizar na calculadora
           </button>
         </div>
       )}
@@ -235,14 +237,14 @@ export default function Cenarios() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
           <ShoppingBag className="text-brand-600" size={28} />
-          Cenários por Setor
+          Cenarios por Setor
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Análises prontas para os setores mais comuns — clique para ver o impacto detalhado
+          Analises prontas com premissas ajustadas para o regime pleno e para a preservacao do Simples
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4">
-        {cenarios.map((c) => <CenarioCard key={c.id} c={c} />)}
+        {cenarios.map((cenario) => <CenarioCard key={cenario.id} c={cenario} />)}
       </div>
     </div>
   )

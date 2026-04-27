@@ -1,14 +1,26 @@
-# Prepara-o reforma tribut-ria 2026
+# Preparacao contabil e reforma tributaria 2026
 
-Aplicacao web em React + Vite para consulta e apoio operacional sobre a Reforma Tributaria 2026.
+Aplicacao web em React + Vite para consulta e apoio operacional sobre Reforma Tributaria 2026 e rotinas de contabilidade em geral.
 
 ## O que tem no projeto
 - painel com resumo dos novos tributos
 - cronograma de transicao 2026 a 2033
-- base local de normas
+- base local de normas da reforma e da contabilidade geral
 - FAQ e glossario
 - calculadoras e simuladores
 - chat em modo local, sem API externa
+
+## Base de normas ampliada
+Agora o projeto tambem inclui referencias uteis para a rotina contabil, como:
+- CTN
+- Lei das S.A.
+- Simples Nacional
+- ECD
+- ECF
+- DCTFWeb
+- EFD-Reinf
+- eSocial
+- normas contabeis do CFC e CPC
 
 ## Stack
 - React
@@ -55,4 +67,4 @@ vite.config.js
 ```
 
 ## Observacao
-As respostas do sistema tem carater orientativo e devem ser conferidas com a legislacao vigente.
+As respostas do sistema tem carater orientativo e devem ser conferidas com a legislacao vigente, normas contabeis aplicaveis e atos oficiais mais recentes.

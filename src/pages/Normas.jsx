@@ -3,20 +3,25 @@ import { Search, ExternalLink, ChevronDown, ChevronUp, Filter } from 'lucide-rea
 import { normas } from '../data/normas'
 
 const statusCor = {
-  vigente:    'bg-green-100 text-green-800',
+  vigente: 'bg-green-100 text-green-800',
   aguardando: 'bg-yellow-100 text-yellow-800',
-  revogado:   'bg-red-100 text-red-800',
+  revogado: 'bg-red-100 text-red-800',
 }
 
 const tipoCor = {
   'Emenda Constitucional': 'bg-purple-100 text-purple-800',
-  'Lei Complementar':      'bg-blue-100 text-blue-800',
+  'Lei Complementar': 'bg-blue-100 text-blue-800',
   'Projeto de Lei Complementar': 'bg-sky-100 text-sky-800',
-  'Lei Ordinária':         'bg-indigo-100 text-indigo-800',
-  'Instrução Normativa RFB': 'bg-orange-100 text-orange-800',
-  'Resolução Comitê Gestor': 'bg-teal-100 text-teal-800',
-  'Nota Técnica RFB':      'bg-amber-100 text-amber-800',
-  'Portaria MF':           'bg-cyan-100 text-cyan-800',
+  'Lei Ordinaria': 'bg-indigo-100 text-indigo-800',
+  'Instrucao Normativa RFB': 'bg-orange-100 text-orange-800',
+  'Resolucao Comite Gestor': 'bg-teal-100 text-teal-800',
+  'Resolucao CGSN': 'bg-teal-100 text-teal-800',
+  'Nota Tecnica RFB': 'bg-amber-100 text-amber-800',
+  'Nota Tecnica MF': 'bg-amber-100 text-amber-800',
+  'Portaria MF': 'bg-cyan-100 text-cyan-800',
+  Decreto: 'bg-emerald-100 text-emerald-800',
+  'Norma Brasileira de Contabilidade': 'bg-fuchsia-100 text-fuchsia-800',
+  'Manual do Sistema': 'bg-slate-100 text-slate-800',
 }
 
 function NormaCard({ norma }) {
@@ -112,17 +117,16 @@ export default function Normas() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Base de Normas</h1>
         <p className="text-slate-500 text-sm mt-1">
-          {normas.length} normas catalogadas · Reforma Tributária 2026
+          {normas.length} normas catalogadas · Reforma tributaria e contabilidade em geral
         </p>
       </div>
 
-      {/* Busca e filtro */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Buscar por número, título, tributo..."
+            placeholder="Buscar por numero, titulo, tributo..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
@@ -143,7 +147,6 @@ export default function Normas() {
         </div>
       </div>
 
-      {/* Resultados */}
       {resultado.length === 0 ? (
         <div className="text-center py-16 text-slate-500">
           <Search size={40} className="mx-auto mb-3 opacity-30" />

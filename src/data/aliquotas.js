@@ -1,187 +1,254 @@
 // ============================================================
-// ALÍQUOTAS DE REFERÊNCIA — REFORMA TRIBUTÁRIA 2026
-// Atualize os valores aqui quando houver novas resoluções.
+// ALIQUOTAS E REGRAS DE CALCULO
+// Baseado em estimativas de referencia da EC 132/2023 e em
+// faixas legais do Simples Nacional (LC 123/2006).
 // ============================================================
-
-// --- TRIBUTOS ATUAIS ---
 
 export const ATUAIS = {
   presumido: {
     produto: {
-      pis:    0.0065,
-      cofins: 0.0300,
-      icms:   0.1800, // referência SP/MG — varia por estado
-      iss:    0,
+      pis: 0.0065,
+      cofins: 0.03,
+      icms: 0.18,
+      iss: 0,
     },
     servico: {
-      pis:    0.0065,
-      cofins: 0.0300,
-      icms:   0,
-      iss:    0.0300, // referência municipal (varia 2%–5%)
+      pis: 0.0065,
+      cofins: 0.03,
+      icms: 0,
+      iss: 0.03,
     },
   },
   real: {
     produto: {
-      pis:    0.0165,
-      cofins: 0.0760,
-      icms:   0.1800,
-      iss:    0,
-      nota:   'Lucro Real permite créditos de PIS/COFINS e ICMS. Os valores acima são as alíquotas brutas.',
+      pis: 0.0165,
+      cofins: 0.076,
+      icms: 0.18,
+      iss: 0,
+      nota: 'Lucro Real permite creditos de PIS/COFINS e ICMS. Os valores do comparativo atual representam as aliquotas brutas sobre faturamento.',
     },
     servico: {
-      pis:    0.0165,
-      cofins: 0.0760,
-      icms:   0,
-      iss:    0.0300,
-      nota:   'Lucro Real permite créditos de PIS/COFINS. Os valores acima são as alíquotas brutas.',
-    },
-  },
-  simples: {
-    produto: {
-      das:  0.0400, // Anexo I — 1ª faixa (até R$ 180 mil/ano)
-      nota: 'Simples Anexo I (Comércio) — 1ª faixa. Para outras faixas ou anexos, a alíquota varia.',
-    },
-    servico: {
-      das:  0.0600, // Anexo III — 1ª faixa
-      nota: 'Simples Anexo III (Serviços) — 1ª faixa. Para outros anexos a alíquota varia.',
+      pis: 0.0165,
+      cofins: 0.076,
+      icms: 0,
+      iss: 0.03,
+      nota: 'Lucro Real permite creditos de PIS/COFINS. Os valores do comparativo atual representam as aliquotas brutas sobre faturamento.',
     },
   },
 }
 
-// --- NOVOS TRIBUTOS (CBS + IBS) ---
-
-// Alíquotas de referência (LC 214/2025 + Resolução Comitê Gestor)
 export const NOVOS = {
-  cbs:  0.0880, // Contribuição sobre Bens e Serviços — federal
-  ibs:  0.1770, // Imposto sobre Bens e Serviços — estados + municípios
+  cbs: 0.088,
+  ibs: 0.177,
 }
 
-// Alíquota total plena
-export const TOTAL_PLENO = NOVOS.cbs + NOVOS.ibs // 26,5%
-
-// --- REGIMES DIFERENCIADOS ---
-// Fator de redução aplicado sobre CBS e IBS
+export const TOTAL_PLENO = NOVOS.cbs + NOVOS.ibs
 
 export const REDUCAO = {
-  nenhum:     1.00, // alíquota plena
-  saude:      0.40, // redução de 60% → paga apenas 40% da alíquota plena
-  educacao:   0.40,
-  transporte: 0.40,
-  dispositivos_medicos: 0.40,
-  medicamentos: 0.40,
-  cultura:    0.60, // redução de 40% → paga 60% da alíquota plena
-  esporte:    0.60,
-  cesta:      0.00, // alíquota zero
-  med_raro:   0.00,
+  nenhum: 1,
+  saude: 0.4,
+  educacao: 0.4,
+  transporte: 0.4,
+  dispositivos_medicos: 0.4,
+  medicamentos: 0.4,
+  cultura: 0.6,
+  esporte: 0.6,
+  cesta: 0,
+  med_raro: 0,
 }
-
-// --- PERÍODO DE TESTE 2026 ---
 
 export const TESTE_2026 = {
-  cbs: 0.0090, // compensável com PIS/COFINS
-  ibs: 0.0010, // compensável com ICMS/ISS
+  cbs: 0.009,
+  ibs: 0.001,
 }
 
-// Calcula os impostos para um dado faturamento, regime e tipo de operação
-export function calcularAtual(faturamento, regime, tipo) {
+export const SIMPLES_ANEXOS = {
+  I: {
+    nome: 'Anexo I',
+    nota: 'Simples Anexo I. A aliquota efetiva e calculada pela receita bruta dos ultimos 12 meses, conforme LC 123/2006.',
+    faixas: [
+      { ate: 180000, aliquota: 0.04, deducao: 0 },
+      { ate: 360000, aliquota: 0.073, deducao: 5940 },
+      { ate: 720000, aliquota: 0.095, deducao: 13860 },
+      { ate: 1800000, aliquota: 0.107, deducao: 22500 },
+      { ate: 3600000, aliquota: 0.143, deducao: 87300 },
+      { ate: 4800000, aliquota: 0.19, deducao: 378000 },
+    ],
+  },
+  III: {
+    nome: 'Anexo III',
+    nota: 'Simples Anexo III. A aliquota efetiva e calculada pela receita bruta dos ultimos 12 meses, conforme LC 123/2006.',
+    faixas: [
+      { ate: 180000, aliquota: 0.06, deducao: 0 },
+      { ate: 360000, aliquota: 0.112, deducao: 9360 },
+      { ate: 720000, aliquota: 0.135, deducao: 17640 },
+      { ate: 1800000, aliquota: 0.16, deducao: 35640 },
+      { ate: 3600000, aliquota: 0.21, deducao: 125640 },
+      { ate: 4800000, aliquota: 0.33, deducao: 648000 },
+    ],
+  },
+  V: {
+    nome: 'Anexo V',
+    nota: 'Simples Anexo V. A aliquota efetiva e calculada pela receita bruta dos ultimos 12 meses, conforme LC 123/2006.',
+    faixas: [
+      { ate: 180000, aliquota: 0.155, deducao: 0 },
+      { ate: 360000, aliquota: 0.18, deducao: 4500 },
+      { ate: 720000, aliquota: 0.195, deducao: 9900 },
+      { ate: 1800000, aliquota: 0.205, deducao: 17100 },
+      { ate: 3600000, aliquota: 0.23, deducao: 62100 },
+      { ate: 4800000, aliquota: 0.305, deducao: 540000 },
+    ],
+  },
+}
+
+function resolverSimplesAnexo(tipo, simplesAnexo = 'auto') {
+  if (tipo === 'produto') return 'I'
+  if (simplesAnexo && simplesAnexo !== 'auto') return simplesAnexo
+  return 'III'
+}
+
+function calcularAliquotaEfetivaSimples(receitaBruta12m, anexo) {
+  const tabela = SIMPLES_ANEXOS[anexo]
+  const faixa = tabela.faixas.find((item) => receitaBruta12m <= item.ate) || tabela.faixas[tabela.faixas.length - 1]
+  const efetiva = ((receitaBruta12m * faixa.aliquota) - faixa.deducao) / receitaBruta12m
+  return { faixa, efetiva }
+}
+
+function calcularSimples(faturamentoMensal, tipo, options = {}) {
+  const anexo = resolverSimplesAnexo(tipo, options.simplesAnexo)
+  const receitaBruta12m = Math.max(options.receitaBruta12m ?? faturamentoMensal * 12, faturamentoMensal)
+  const { faixa, efetiva } = calcularAliquotaEfetivaSimples(receitaBruta12m, anexo)
+  const total = faturamentoMensal * efetiva
+  const tabela = SIMPLES_ANEXOS[anexo]
+
+  return {
+    linhas: [{ label: `DAS (${tabela.nome})`, valor: total, aliquota: efetiva }],
+    total,
+    meta: { anexo, faixaNominal: faixa.aliquota, receitaBruta12m },
+    nota: `${tabela.nota} Faixa nominal considerada: ${(faixa.aliquota * 100).toFixed(1).replace('.', ',')}%.`,
+  }
+}
+
+export function calcularAtual(faturamento, regime, tipo, options = {}) {
   if (regime === 'simples') {
-    const r = ATUAIS.simples[tipo]
-    return {
-      linhas: [{ label: 'DAS (Simples Nacional)', valor: faturamento * r.das, aliquota: r.das }],
-      total:  faturamento * r.das,
-      nota:   r.nota,
-    }
+    return calcularSimples(faturamento, tipo, options)
   }
 
   const r = ATUAIS[regime][tipo]
   const linhas = []
 
-  if (r.pis > 0)    linhas.push({ label: 'PIS',   valor: faturamento * r.pis,    aliquota: r.pis })
+  if (r.pis > 0) linhas.push({ label: 'PIS', valor: faturamento * r.pis, aliquota: r.pis })
   if (r.cofins > 0) linhas.push({ label: 'COFINS', valor: faturamento * r.cofins, aliquota: r.cofins })
-  if (r.icms > 0)   linhas.push({ label: 'ICMS',   valor: faturamento * r.icms,   aliquota: r.icms })
-  if (r.iss > 0)    linhas.push({ label: 'ISS',    valor: faturamento * r.iss,    aliquota: r.iss })
+  if (r.icms > 0) linhas.push({ label: 'ICMS', valor: faturamento * r.icms, aliquota: r.icms })
+  if (r.iss > 0) linhas.push({ label: 'ISS', valor: faturamento * r.iss, aliquota: r.iss })
 
-  const total = linhas.reduce((s, l) => s + l.valor, 0)
+  const total = linhas.reduce((soma, item) => soma + item.valor, 0)
   return { linhas, total, nota: r.nota }
 }
 
-// --- CRONOGRAMA DE TRANSIÇÃO ---
-// cbsFator: 0 = ainda não vigente (compensado), 1 = pleno
-// ibsFator: fração do IBS já vigente (0→1 de 2029 a 2033)
-// legadoFator: fração restante de ICMS/ISS (1→0 de 2026 a 2033)
-// pisCofinsPermanece: PIS/COFINS ainda existem neste ano
-export const TRANSICAO = {
-  2026: { cbsFator: 0,   ibsFator: 0,   legadoFator: 1.0, pisCofinsPermanece: true,  fase: 'Período de Testes'    },
-  2027: { cbsFator: 1,   ibsFator: 0,   legadoFator: 1.0, pisCofinsPermanece: false, fase: 'CBS Plena'             },
-  2028: { cbsFator: 1,   ibsFator: 0,   legadoFator: 1.0, pisCofinsPermanece: false, fase: 'CBS Plena'             },
-  2029: { cbsFator: 1,   ibsFator: 0.2, legadoFator: 0.8, pisCofinsPermanece: false, fase: 'IBS 20% / ICMS‑ISS 80%'},
-  2030: { cbsFator: 1,   ibsFator: 0.4, legadoFator: 0.6, pisCofinsPermanece: false, fase: 'IBS 40% / ICMS‑ISS 60%'},
-  2031: { cbsFator: 1,   ibsFator: 0.6, legadoFator: 0.4, pisCofinsPermanece: false, fase: 'IBS 60% / ICMS‑ISS 40%'},
-  2032: { cbsFator: 1,   ibsFator: 0.8, legadoFator: 0.2, pisCofinsPermanece: false, fase: 'IBS 80% / ICMS‑ISS 20%'},
-  2033: { cbsFator: 1,   ibsFator: 1.0, legadoFator: 0.0, pisCofinsPermanece: false, fase: 'Reforma Completa'      },
-}
-
-export function calcularTransicao(faturamento, regime, tipo, regimeDif) {
-  const fatorRed = REDUCAO[regimeDif] ?? 1
-
-  return Object.entries(TRANSICAO).map(([anoStr, t]) => {
-    const ano = Number(anoStr)
-    const linhas = []
-
-    if (regime === 'simples') {
-      // Simples: composição interna muda a partir de 2029, mas total permanece próximo
-      const das = faturamento * ATUAIS.simples[tipo].das
-      linhas.push({ label: 'DAS', valor: das, aliquota: ATUAIS.simples[tipo].das })
-    } else {
-      const r = ATUAIS[regime][tipo]
-
-      // PIS / COFINS — existem até 2026 (no teste, são compensados pelo CBS)
-      if (t.pisCofinsPermanece) {
-        if (r.pis > 0)    linhas.push({ label: 'PIS',    valor: faturamento * r.pis,    aliquota: r.pis })
-        if (r.cofins > 0) linhas.push({ label: 'COFINS', valor: faturamento * r.cofins, aliquota: r.cofins })
-      }
-
-      // CBS
-      if (t.cbsFator > 0) {
-        const al = NOVOS.cbs * fatorRed * t.cbsFator
-        linhas.push({ label: 'CBS', valor: faturamento * al, aliquota: al })
-      }
-
-      // ICMS / ISS legado — diminui progressivamente
-      if (t.legadoFator > 0) {
-        if (tipo === 'produto' && r.icms > 0) {
-          const al = r.icms * t.legadoFator
-          linhas.push({ label: 'ICMS', valor: faturamento * al, aliquota: al })
-        }
-        if (tipo === 'servico' && r.iss > 0) {
-          const al = r.iss * t.legadoFator
-          linhas.push({ label: 'ISS', valor: faturamento * al, aliquota: al })
-        }
-      }
-
-      // IBS — cresce progressivamente
-      if (t.ibsFator > 0) {
-        const al = NOVOS.ibs * fatorRed * t.ibsFator
-        linhas.push({ label: 'IBS', valor: faturamento * al, aliquota: al })
-      }
+export function calcularNovo(faturamento, regime, regimeDiferenciado, options = {}) {
+  if (regime === 'simples') {
+    const atual = calcularSimples(faturamento, options.tipo ?? 'produto', options)
+    return {
+      ...atual,
+      nota: 'Para optantes do Simples Nacional, o regime permanece preservado. O comparativo mostra a carga estimada dentro do DAS, sem migracao automatica para CBS + IBS plenos.',
     }
+  }
 
-    const total = linhas.reduce((s, l) => s + l.valor, 0)
-    return { ano, fase: t.fase, linhas, total, aliquotaEfetiva: faturamento > 0 ? total / faturamento : 0 }
-  })
-}
-
-export function calcularNovo(faturamento, regimeDiferenciado) {
   const fator = REDUCAO[regimeDiferenciado] ?? 1
-  const cbs   = faturamento * NOVOS.cbs * fator
-  const ibs   = faturamento * NOVOS.ibs * fator
+  const cbs = faturamento * NOVOS.cbs * fator
+  const ibs = faturamento * NOVOS.ibs * fator
+  const creditoAliquota = Math.max(Math.min(options.creditoAliquota ?? 0, 1), 0)
+  const creditoValor = faturamento * creditoAliquota
+  const totalBruto = cbs + ibs
+  const totalLiquido = Math.max(totalBruto - creditoValor, 0)
 
   return {
     linhas: [
       { label: 'CBS', valor: cbs, aliquota: NOVOS.cbs * fator },
       { label: 'IBS', valor: ibs, aliquota: NOVOS.ibs * fator },
+      ...(creditoValor > 0 ? [{ label: 'Credito estimado', valor: -creditoValor, aliquota: -creditoAliquota }] : []),
     ],
-    total: cbs + ibs,
+    totalBruto,
+    total: totalLiquido,
+    creditoValor,
+    creditoAliquota,
     fator,
   }
+}
+
+export function calcularTeste2026(faturamento, regimeDiferenciado) {
+  const fator = REDUCAO[regimeDiferenciado] ?? 1
+  return {
+    cbs: faturamento * TESTE_2026.cbs * fator,
+    ibs: faturamento * TESTE_2026.ibs * fator,
+    aliquotaCbs: TESTE_2026.cbs * fator,
+    aliquotaIbs: TESTE_2026.ibs * fator,
+  }
+}
+
+export const TRANSICAO = {
+  2026: { fase: 'Periodo de testes sem onus liquido adicional', legadoFator: 1, pisCofins: true, cbsReducaoPp: 0, ibsFator: 0, ibsFixo: 0, teste: true },
+  2027: { fase: 'CBS reduzida e IBS 0,1%', legadoFator: 1, pisCofins: false, cbsReducaoPp: 0.001, ibsFator: 0, ibsFixo: 0.001 },
+  2028: { fase: 'CBS reduzida e IBS 0,1%', legadoFator: 1, pisCofins: false, cbsReducaoPp: 0.001, ibsFator: 0, ibsFixo: 0.001 },
+  2029: { fase: 'IBS 10% / ICMS-ISS 90%', legadoFator: 0.9, pisCofins: false, cbsReducaoPp: 0, ibsFator: 0.1, ibsFixo: 0 },
+  2030: { fase: 'IBS 20% / ICMS-ISS 80%', legadoFator: 0.8, pisCofins: false, cbsReducaoPp: 0, ibsFator: 0.2, ibsFixo: 0 },
+  2031: { fase: 'IBS 30% / ICMS-ISS 70%', legadoFator: 0.7, pisCofins: false, cbsReducaoPp: 0, ibsFator: 0.3, ibsFixo: 0 },
+  2032: { fase: 'IBS 40% / ICMS-ISS 60%', legadoFator: 0.6, pisCofins: false, cbsReducaoPp: 0, ibsFator: 0.4, ibsFixo: 0 },
+  2033: { fase: 'Reforma completa', legadoFator: 0, pisCofins: false, cbsReducaoPp: 0, ibsFator: 1, ibsFixo: 0 },
+}
+
+export function calcularTransicao(faturamento, regime, tipo, regimeDif, options = {}) {
+  const fatorRed = REDUCAO[regimeDif] ?? 1
+
+  if (regime === 'simples') {
+    const simples = calcularSimples(faturamento, tipo, options)
+    return Object.entries(TRANSICAO).map(([anoStr, etapa]) => ({
+      ano: Number(anoStr),
+      fase: etapa.fase,
+      linhas: simples.linhas.map((linha) => ({ ...linha, label: 'DAS' })),
+      total: simples.total,
+      aliquotaEfetiva: simples.total / faturamento,
+      nota: 'Simples Nacional preservado. A composicao interna do DAS pode ser alterada por normas especificas sem perda automatica do regime.',
+    }))
+  }
+
+  return Object.entries(TRANSICAO).map(([anoStr, etapa]) => {
+    const ano = Number(anoStr)
+    const r = ATUAIS[regime][tipo]
+    const linhas = []
+
+    if (etapa.pisCofins) {
+      if (r.pis > 0) linhas.push({ label: 'PIS', valor: faturamento * r.pis, aliquota: r.pis })
+      if (r.cofins > 0) linhas.push({ label: 'COFINS', valor: faturamento * r.cofins, aliquota: r.cofins })
+    }
+
+    if (!etapa.teste) {
+      const aliquotaCbs = Math.max((NOVOS.cbs * fatorRed) - etapa.cbsReducaoPp, 0)
+      if (aliquotaCbs > 0) linhas.push({ label: 'CBS', valor: faturamento * aliquotaCbs, aliquota: aliquotaCbs })
+
+      const aliquotaIbs = etapa.ibsFixo > 0 ? etapa.ibsFixo * fatorRed : NOVOS.ibs * fatorRed * etapa.ibsFator
+      if (aliquotaIbs > 0) linhas.push({ label: 'IBS', valor: faturamento * aliquotaIbs, aliquota: aliquotaIbs })
+    }
+
+    if (etapa.legadoFator > 0) {
+      if (tipo === 'produto' && r.icms > 0) {
+        const al = r.icms * etapa.legadoFator
+        linhas.push({ label: 'ICMS', valor: faturamento * al, aliquota: al })
+      }
+      if (tipo === 'servico' && r.iss > 0) {
+        const al = r.iss * etapa.legadoFator
+        linhas.push({ label: 'ISS', valor: faturamento * al, aliquota: al })
+      }
+    }
+
+    const total = linhas.reduce((soma, item) => soma + item.valor, 0)
+    return {
+      ano,
+      fase: etapa.fase,
+      linhas,
+      total,
+      aliquotaEfetiva: faturamento > 0 ? total / faturamento : 0,
+    }
+  })
 }

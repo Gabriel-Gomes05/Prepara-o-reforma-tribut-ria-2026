@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { Calculator, TrendingDown, TrendingUp, Minus, AlertCircle, Info } from 'lucide-react'
-import { calcularAtual, calcularNovo, TESTE_2026, NOVOS, REDUCAO } from '../data/aliquotas'
+import { calcularAtual, calcularNovo, calcularTeste2026, NOVOS, REDUCAO } from '../data/aliquotas'
 import { fmt, fmtPct, formatarNumero } from '../utils/formatters'
-import { REGIME_DIF_OPCOES } from '../data/opcoes'
+import { REGIME_DIF_OPCOES, SIMPLES_ANEXO_OPCOES } from '../data/opcoes'
 
 function LinhaTabela({ label, valor, aliquota, destaque }) {
   return (
@@ -25,22 +25,17 @@ function CardResultado({ titulo, total, faturamento, linhas, cor, icon: Icon }) 
         <thead>
           <tr className="text-xs text-slate-400 uppercase border-b">
             <th className="pb-2 px-3 text-left font-medium">Tributo</th>
-            <th className="pb-2 px-3 text-right font-medium">Alíquota</th>
+            <th className="pb-2 px-3 text-right font-medium">Aliquota</th>
             <th className="pb-2 px-3 text-right font-medium">Valor (R$)</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {linhas.map((l) => (
-            <LinhaTabela key={l.label} {...l} />
+          {linhas.map((linha) => (
+            <LinhaTabela key={linha.label} {...linha} />
           ))}
         </tbody>
         <tfoot className="border-t-2 border-slate-300">
-          <LinhaTabela
-            label="Total"
-            valor={total}
-            aliquota={total / faturamento}
-            destaque
-          />
+          <LinhaTabela label="Total" valor={total} aliquota={faturamento > 0 ? total / faturamento : 0} destaque />
         </tfoot>
       </table>
     </div>
@@ -48,39 +43,91 @@ function CardResultado({ titulo, total, faturamento, linhas, cor, icon: Icon }) 
 }
 
 function ls(key, fallback) {
-  try { return localStorage.getItem(key) || fallback } catch { return fallback }
+  try {
+    return localStorage.getItem(key) || fallback
+  } catch {
+    return fallback
+  }
 }
-function lsSet(key, val) { try { localStorage.setItem(key, val) } catch {} }
+
+function lsSet(key, val) {
+  try {
+    localStorage.setItem(key, val)
+  } catch {}
+}
 
 export default function Calculadora() {
   const [faturamento, setFaturamento] = useState(() => ls('calc_fat', ''))
-  const [periodo, setPeriodo]         = useState(() => ls('calc_periodo', 'mensal'))
-  const [regime, setRegime]           = useState(() => ls('calc_regime', 'presumido'))
-  const [tipo, setTipo]               = useState(() => ls('calc_tipo', 'produto'))
-  const [regimeDif, setRegimeDif]     = useState(() => ls('calc_regimeDif', 'nenhum'))
+  const [periodo, setPeriodo] = useState(() => ls('calc_periodo', 'mensal'))
+  const [regime, setRegime] = useState(() => ls('calc_regime', 'presumido'))
+  const [tipo, setTipo] = useState(() => ls('calc_tipo', 'produto'))
+  const [regimeDif, setRegimeDif] = useState(() => ls('calc_regimeDif', 'nenhum'))
+  const [simplesAnexo, setSimplesAnexo] = useState(() => ls('calc_simplesAnexo', 'I'))
+  const [creditoPercentual, setCreditoPercentual] = useState(() => ls('calc_creditoPct', '0'))
 
-  const fat = parseFloat(faturamento.replace(/\./g, '').replace(',', '.')) || 0
-  const fatBase = periodo === 'anual' ? fat : fat * 12
+  const fatInformado = parseFloat(faturamento.replace(/\./g, '').replace(',', '.')) || 0
+  const fatMensal = periodo === 'anual' ? fatInformado / 12 : fatInformado
+  const receitaBruta12m = periodo === 'anual' ? fatInformado : fatMensal * 12
+  const creditoAliquota = Math.max((parseFloat(creditoPercentual.replace(',', '.')) || 0) / 100, 0)
+
+  const options = useMemo(() => ({
+    tipo,
+    simplesAnexo,
+    receitaBruta12m,
+    creditoAliquota,
+  }), [tipo, simplesAnexo, receitaBruta12m, creditoAliquota])
 
   const resultado = useMemo(() => {
-    if (!fat || fat <= 0) return null
-    const atual = calcularAtual(fat, regime, tipo)
-    const novo  = calcularNovo(fat, regimeDif)
-    const diff  = novo.total - atual.total
-    const cbs2026 = fat * TESTE_2026.cbs
-    const ibs2026 = fat * TESTE_2026.ibs
-
-    return { atual, novo, diff, cbs2026, ibs2026 }
-  }, [fat, regime, tipo, regimeDif])
+    if (!fatMensal || fatMensal <= 0) return null
+    const atual = calcularAtual(fatMensal, regime, tipo, options)
+    const novo = calcularNovo(fatMensal, regime, regimeDif, options)
+    const diff = novo.total - atual.total
+    const teste2026 = calcularTeste2026(fatMensal, regimeDif)
+    return { atual, novo, diff, teste2026 }
+  }, [fatMensal, regime, tipo, regimeDif, options])
 
   function handleFaturamento(e) {
-    const v = formatarNumero(e.target.value)
-    setFaturamento(v)
-    lsSet('calc_fat', v)
+    const valor = formatarNumero(e.target.value)
+    setFaturamento(valor)
+    lsSet('calc_fat', valor)
   }
 
-  function handleSelect(setter, key) {
-    return (e) => { setter(e.target.value); lsSet(key, e.target.value) }
+  function handleRegime(value) {
+    setRegime(value)
+    lsSet('calc_regime', value)
+  }
+
+  function handleTipo(value) {
+    setTipo(value)
+    lsSet('calc_tipo', value)
+    if (value === 'produto') {
+      setSimplesAnexo('I')
+      lsSet('calc_simplesAnexo', 'I')
+    } else if (simplesAnexo === 'I') {
+      setSimplesAnexo('III')
+      lsSet('calc_simplesAnexo', 'III')
+    }
+  }
+
+  function handlePeriodo(value) {
+    setPeriodo(value)
+    lsSet('calc_periodo', value)
+  }
+
+  function handleRegimeDif(value) {
+    setRegimeDif(value)
+    lsSet('calc_regimeDif', value)
+  }
+
+  function handleSimplesAnexo(value) {
+    setSimplesAnexo(value)
+    lsSet('calc_simplesAnexo', value)
+  }
+
+  function handleCreditoPercentual(e) {
+    const raw = e.target.value.replace(/[^\d,.-]/g, '').replace('.', ',')
+    setCreditoPercentual(raw)
+    lsSet('calc_creditoPct', raw)
   }
 
   const reducaoPct = REDUCAO[regimeDif]
@@ -91,23 +138,18 @@ export default function Calculadora() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
           <Calculator className="text-brand-600" size={28} />
-          Calculadora de Impacto Tributário
+          Calculadora de Tributos sobre Faturamento
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Compare a carga tributária atual com a nova no sistema CBS + IBS
+          Compare a carga atual sobre faturamento com o regime novo e com a preservacao do Simples quando aplicavel
         </p>
       </div>
 
-      {/* Formulário */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
         <h2 className="font-semibold text-slate-800 mb-5">Dados da empresa</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-          {/* Faturamento */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Faturamento (R$)
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Faturamento (R$)</label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R$</span>
@@ -122,21 +164,20 @@ export default function Calculadora() {
               </div>
               <select
                 value={periodo}
-                onChange={handleSelect(setPeriodo, 'calc_periodo')}
+                onChange={(e) => handlePeriodo(e.target.value)}
                 className="px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
               >
-                <option value="mensal">por mês</option>
+                <option value="mensal">por mes</option>
                 <option value="anual">por ano</option>
               </select>
             </div>
           </div>
 
-          {/* Regime */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Regime tributário atual</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Regime tributario atual</label>
             <select
               value={regime}
-              onChange={handleSelect(setRegime, 'calc_regime')}
+              onChange={(e) => handleRegime(e.target.value)}
               className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
             >
               <option value="presumido">Lucro Presumido</option>
@@ -145,127 +186,184 @@ export default function Calculadora() {
             </select>
           </div>
 
-          {/* Tipo */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de operação</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de operacao</label>
             <select
               value={tipo}
-              onChange={handleSelect(setTipo, 'calc_tipo')}
+              onChange={(e) => handleTipo(e.target.value)}
               className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
             >
               <option value="produto">Venda de produtos</option>
-              <option value="servico">Prestação de serviços</option>
+              <option value="servico">Prestacao de servicos</option>
             </select>
           </div>
 
-          {/* Regime diferenciado */}
+          {regime === 'simples' && (
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Anexo do Simples</label>
+              <select
+                value={tipo === 'produto' ? 'I' : simplesAnexo}
+                onChange={(e) => handleSimplesAnexo(e.target.value)}
+                disabled={tipo === 'produto'}
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white disabled:opacity-70"
+              >
+                {SIMPLES_ANEXO_OPCOES.filter((opcao) => (tipo === 'produto' ? opcao.value === 'I' : opcao.value !== 'I')).map((opcao) => (
+                  <option key={opcao.value} value={opcao.value}>{opcao.label}</option>
+                ))}
+              </select>
+              {tipo === 'servico' && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Para servicos no Simples, escolha o anexo aplicavel. Atividades do Anexo IV exigem analise separada da CPP sobre a folha.
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Regime diferenciado (se aplicável)
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Regime diferenciado do IBS/CBS</label>
             <select
               value={regimeDif}
-              onChange={handleSelect(setRegimeDif, 'calc_regimeDif')}
+              onChange={(e) => handleRegimeDif(e.target.value)}
               className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
             >
-              {REGIME_DIF_OPCOES.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+              {REGIME_DIF_OPCOES.map((opcao) => (
+                <option key={opcao.value} value={opcao.value}>{opcao.label}</option>
               ))}
             </select>
-            {reducaoPct < 1 && reducaoPct > 0 && (
+            {regime !== 'simples' && reducaoPct < 1 && reducaoPct > 0 && (
               <p className="text-xs text-green-700 mt-1 flex items-center gap-1">
                 <Info size={12} />
-                Alíquota total no novo sistema: {fmtPct(totalNovoPleno)} (redução de {Math.round((1 - reducaoPct) * 100)}%)
+                Aliquota total estimada no regime pleno: {fmtPct(totalNovoPleno)} (reducao de {Math.round((1 - reducaoPct) * 100)}%)
               </p>
             )}
-            {reducaoPct === 0 && (
+            {regime !== 'simples' && reducaoPct === 0 && (
               <p className="text-xs text-green-700 mt-1 flex items-center gap-1">
                 <Info size={12} />
-                Alíquota zero — não haverá CBS nem IBS nessa operação
+                Aliquota zero no regime pleno de CBS e IBS para a operacao selecionada
               </p>
             )}
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Credito estimado aproveitavel no novo regime (% do faturamento)</label>
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={creditoPercentual}
+                onChange={handleCreditoPercentual}
+                placeholder="0"
+                className="w-full pr-10 pl-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Use uma estimativa conservadora do credito financeiro recuperavel no regime novo. Ex.: insumos, energia, servicos contratados e demais despesas elegiveis.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Resultado */}
-      {resultado && fat > 0 && (
+      {resultado && fatMensal > 0 && (
         <>
-          {/* Alerta 2026 */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 text-sm text-blue-800">
             <AlertCircle size={18} className="shrink-0 mt-0.5 text-blue-600" />
             <div>
-              <span className="font-semibold">2026 — período de testes: </span>
-              CBS {fmtPct(0.009)} → {fmt(resultado.cbs2026)} &nbsp;|&nbsp;
-              IBS {fmtPct(0.001)} → {fmt(resultado.ibs2026)}
-              <br />
-              Esses valores são compensáveis com PIS/COFINS e ICMS/ISS devidos. Não há custo adicional em 2026.
+              <span className="font-semibold">2026 - periodo de testes:</span>{' '}
+              {regime === 'simples'
+                ? 'para optantes do Simples, o regime permanece preservado e os testes nao implicam migracao automatica para o modelo pleno.'
+                : `CBS ${fmtPct(resultado.teste2026.aliquotaCbs)} -> ${fmt(resultado.teste2026.cbs)} | IBS ${fmtPct(resultado.teste2026.aliquotaIbs)} -> ${fmt(resultado.teste2026.ibs)}. Os valores de teste sao compensaveis e nao representam custo adicional liquido em 2026.`}
             </div>
           </div>
 
-          {/* Cards de comparação */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <CardResultado
-              titulo="Sistema Atual"
+              titulo="Regime Atual"
               total={resultado.atual.total}
-              faturamento={fat}
+              faturamento={fatMensal}
               linhas={resultado.atual.linhas}
               cor="border-slate-300"
               icon={Minus}
             />
             <CardResultado
-              titulo="Novo Sistema (CBS + IBS)"
+              titulo={regime === 'simples' ? 'Simples Preservado' : 'Regime Pleno CBS + IBS'}
               total={resultado.novo.total}
-              faturamento={fat}
+              faturamento={fatMensal}
               linhas={resultado.novo.linhas}
               cor={resultado.diff > 0 ? 'border-red-400' : 'border-green-400'}
               icon={resultado.diff > 0 ? TrendingUp : TrendingDown}
             />
           </div>
 
-          {/* Resumo */}
           <div className={`rounded-xl p-6 flex flex-col sm:flex-row items-center gap-6 ${resultado.diff > 0 ? 'bg-red-50 border border-red-200' : resultado.diff < 0 ? 'bg-green-50 border border-green-200' : 'bg-slate-50 border border-slate-200'}`}>
             <div className="text-center sm:text-left">
-              <p className="text-sm text-slate-600 mb-1">Diferença mensal</p>
+              <p className="text-sm text-slate-600 mb-1">Diferenca mensal</p>
               <p className={`text-3xl font-black ${resultado.diff > 0 ? 'text-red-600' : resultado.diff < 0 ? 'text-green-600' : 'text-slate-600'}`}>
                 {resultado.diff > 0 ? '+' : ''}{fmt(resultado.diff)}
               </p>
             </div>
             <div className="text-center sm:text-left">
-              <p className="text-sm text-slate-600 mb-1">Diferença anual</p>
+              <p className="text-sm text-slate-600 mb-1">Diferenca anual</p>
               <p className={`text-3xl font-black ${resultado.diff > 0 ? 'text-red-600' : resultado.diff < 0 ? 'text-green-600' : 'text-slate-600'}`}>
                 {resultado.diff > 0 ? '+' : ''}{fmt(resultado.diff * 12)}
               </p>
             </div>
             <div className="flex-1 text-sm text-slate-600 text-center sm:text-left">
-              {resultado.diff > 0 ? (
-                <p>A carga tributária <strong>aumenta</strong> com a Reforma. Avalie se a empresa se enquadra em algum regime diferenciado para reduzir o impacto.</p>
+              {regime === 'simples' ? (
+                <p>Para optantes do Simples, a comparacao mostra o DAS atual versus um cenario de fora do Simples com CBS/IBS liquidos dos creditos estimados.</p>
+              ) : resultado.diff > 0 ? (
+                <p>No regime pleno de CBS e IBS, a carga estimada sobre faturamento aumenta. Avalie enquadramento em regime diferenciado e impacto de creditos financeiros na operacao real.</p>
               ) : resultado.diff < 0 ? (
-                <p>A carga tributária <strong>diminui</strong> com a Reforma. O crédito financeiro pleno do IBS/CBS pode gerar economia adicional.</p>
+                <p>No regime pleno de CBS e IBS, a carga estimada sobre faturamento diminui. O efeito liquido pode ser ainda melhor em empresas com maior aproveitamento de creditos.</p>
               ) : (
-                <p>A carga tributária <strong>permanece semelhante</strong>.</p>
+                <p>A carga estimada sobre faturamento permanece semelhante.</p>
               )}
             </div>
           </div>
 
-          {/* Nota técnica */}
+          {creditoAliquota > 0 && regime !== 'simples' && resultado.novo.creditoValor > 0 && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-emerald-900">
+              Credito estimado no novo regime: <strong>{fmt(resultado.novo.creditoValor)}</strong> por mes, equivalente a <strong>{fmtPct(creditoAliquota)}</strong> do faturamento.
+            </div>
+          )}
+
+          {regime === 'simples' && (
+            <div className={`rounded-xl p-4 text-sm border ${resultado.diff < 0 ? 'bg-green-50 border-green-200 text-green-900' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
+              {resultado.diff < 0 ? (
+                <p>
+                  Com o credito estimado informado, <strong>passa a fazer sentido estudar a saida do Simples</strong>, porque a carga comparada sobre faturamento no regime novo ficou menor que o DAS atual.
+                </p>
+              ) : (
+                <p>
+                  Com o credito estimado informado, <strong>a permanencia no Simples segue mais favoravel</strong> no comparativo de tributos sobre faturamento. A saida so tende a valer se o ganho operacional com creditos e estrutura fiscal superar essa diferenca.
+                </p>
+              )}
+            </div>
+          )}
+
           {resultado.atual.nota && (
             <p className="text-xs text-slate-400 flex items-start gap-1">
               <Info size={12} className="mt-0.5 shrink-0" />
               {resultado.atual.nota}
             </p>
           )}
+          {resultado.novo.nota && resultado.novo.nota !== resultado.atual.nota && (
+            <p className="text-xs text-slate-400 flex items-start gap-1">
+              <Info size={12} className="mt-0.5 shrink-0" />
+              {resultado.novo.nota}
+            </p>
+          )}
           <p className="text-xs text-slate-400 flex items-start gap-1">
             <Info size={12} className="mt-0.5 shrink-0" />
-            Estimativa baseada nas alíquotas de referência (EC 132/2023 e LC 214/2025). ICMS calculado pela alíquota de referência de 18%. Consulte um especialista para análise individualizada.
+            Estimativa orientada por EC 132/2023 e LC 123/2006. A decisao de sair do Simples deve considerar tambem IRPJ, CSLL, CPP, obrigacoes acessorias, folha, margem e credito efetivamente apropriavel.
           </p>
         </>
       )}
 
-      {!fat && (
+      {!fatMensal && (
         <div className="text-center py-16 text-slate-400">
           <Calculator size={48} className="mx-auto mb-3 opacity-30" />
-          <p className="font-medium text-slate-500">Informe o faturamento para ver a comparação</p>
+          <p className="font-medium text-slate-500">Informe o faturamento para ver a comparacao</p>
         </div>
       )}
     </div>

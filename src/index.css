@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #94a3b8;
+    border-radius: 3px;
+  }
+}
+
+/* Impressão — oculta tudo exceto o relatório */
+@media print {
+  body { background: white !important; }
+  .no-print { display: none !important; }
+  header, footer { display: none !important; }
+  .print-section { border: none !important; box-shadow: none !important; }
+  @page { margin: 1.5cm; }
+}
+
+/* Markdown styles inside chat */
+.prose-chat p { @apply mb-2 last:mb-0; }
+.prose-chat strong { @apply font-semibold; }
+.prose-chat ul { @apply list-disc pl-5 mb-2; }
+.prose-chat ol { @apply list-decimal pl-5 mb-2; }
+.prose-chat li { @apply mb-1; }
+.prose-chat code { @apply bg-slate-200 text-slate-800 px-1 py-0.5 rounded text-sm font-mono; }
+.prose-chat h3, .prose-chat h4 { @apply font-semibold mt-3 mb-1; }

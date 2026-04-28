@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Search, FileText, HelpCircle, BookOpen, CheckSquare, Calendar, ExternalLink } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Search, FileText, HelpCircle, BookOpen, CheckSquare, ExternalLink } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { normas } from '../data/normas'
 import { faq } from '../data/faq'
@@ -23,7 +23,7 @@ const FONTES = [
   },
   {
     id: 'glossario',
-    label: 'Glossário',
+    label: 'Glossario',
     icon: BookOpen,
     cor: 'bg-purple-100 text-purple-700',
     rota: '/glossario',
@@ -40,43 +40,57 @@ const FONTES = [
 function indexar() {
   const items = []
 
-  normas.forEach((n) => {
+  normas.forEach((norma) => {
     items.push({
       fonte: 'normas',
-      titulo: `${n.numero} — ${n.titulo}`,
-      resumo: n.resumo,
-      tags: n.tributos,
-      texto: `${n.numero} ${n.titulo} ${n.resumo} ${n.tributos.join(' ')}`.toLowerCase(),
+      titulo: `${norma.numero} - ${norma.titulo}`,
+      resumo: norma.resumo,
+      tags: [norma.esfera, norma.uf, norma.municipio, norma.categoria, ...norma.tributos].filter(Boolean),
+      texto: [
+        norma.numero,
+        norma.titulo,
+        norma.resumo,
+        norma.orgao,
+        norma.esfera,
+        norma.uf,
+        norma.municipio,
+        norma.categoria,
+        ...(norma.assuntos || []),
+        ...norma.tributos,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase(),
     })
   })
 
-  faq.forEach((f) => {
+  faq.forEach((item) => {
     items.push({
       fonte: 'faq',
-      titulo: f.pergunta,
-      resumo: f.resposta.replace(/\*\*/g, '').replace(/\n/g, ' ').slice(0, 200),
-      tags: f.tributos,
-      texto: `${f.pergunta} ${f.resposta}`.toLowerCase(),
+      titulo: item.pergunta,
+      resumo: item.resposta.replace(/\*\*/g, '').replace(/\n/g, ' ').slice(0, 200),
+      tags: item.tributos,
+      texto: `${item.pergunta} ${item.resposta}`.toLowerCase(),
     })
   })
 
-  termos.forEach((t) => {
+  termos.forEach((termo) => {
     items.push({
       fonte: 'glossario',
-      titulo: t.sigla ? `${t.termo} (${t.sigla})` : t.termo,
-      resumo: t.definicao.slice(0, 200),
-      tags: [t.categoria],
-      texto: `${t.termo} ${t.sigla || ''} ${t.definicao} ${t.fundamento}`.toLowerCase(),
+      titulo: termo.sigla ? `${termo.termo} (${termo.sigla})` : termo.termo,
+      resumo: termo.definicao.slice(0, 200),
+      tags: [termo.categoria],
+      texto: `${termo.termo} ${termo.sigla || ''} ${termo.definicao} ${termo.fundamento}`.toLowerCase(),
     })
   })
 
-  tarefas.forEach((t) => {
+  tarefas.forEach((tarefa) => {
     items.push({
       fonte: 'checklist',
-      titulo: t.tarefa,
-      resumo: `Prazo: ${t.prazo} · ${t.norma}`,
-      tags: [t.categoria, t.prioridade],
-      texto: `${t.tarefa} ${t.norma} ${t.categoria}`.toLowerCase(),
+      titulo: tarefa.tarefa,
+      resumo: `Prazo: ${tarefa.prazo} - ${tarefa.norma}`,
+      tags: [tarefa.categoria, tarefa.prioridade],
+      texto: `${tarefa.tarefa} ${tarefa.norma} ${tarefa.categoria}`.toLowerCase(),
     })
   })
 
@@ -87,11 +101,17 @@ const INDICE = indexar()
 
 function destaque(texto, query) {
   if (!query) return texto
+
   const partes = texto.split(new RegExp(`(${query})`, 'gi'))
-  return partes.map((p, i) =>
-    p.toLowerCase() === query.toLowerCase()
-      ? <mark key={i} className="bg-yellow-200 text-yellow-900 rounded px-0.5">{p}</mark>
-      : p
+
+  return partes.map((parte, index) =>
+    parte.toLowerCase() === query.toLowerCase() ? (
+      <mark key={index} className="bg-yellow-200 text-yellow-900 rounded px-0.5">
+        {parte}
+      </mark>
+    ) : (
+      parte
+    )
   )
 }
 
@@ -100,25 +120,27 @@ export default function Busca() {
   const [fonteAtiva, setFonteAtiva] = useState('')
 
   const resultados = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (q.length < 2) return []
+    const busca = query.trim().toLowerCase()
+    if (busca.length < 2) return []
+
     return INDICE.filter((item) => {
-      const matchTexto = item.texto.includes(q)
+      const matchTexto = item.texto.includes(busca)
       const matchFonte = !fonteAtiva || item.fonte === fonteAtiva
       return matchTexto && matchFonte
     })
   }, [query, fonteAtiva])
 
   const contagens = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (q.length < 2) return {}
-    return FONTES.reduce((acc, f) => {
-      acc[f.id] = INDICE.filter((item) => item.fonte === f.id && item.texto.includes(q)).length
+    const busca = query.trim().toLowerCase()
+    if (busca.length < 2) return {}
+
+    return FONTES.reduce((acc, fonte) => {
+      acc[fonte.id] = INDICE.filter((item) => item.fonte === fonte.id && item.texto.includes(busca)).length
       return acc
     }, {})
   }, [query])
 
-  const fonteInfo = (id) => FONTES.find((f) => f.id === id)
+  const fonteInfo = (id) => FONTES.find((fonte) => fonte.id === id)
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
@@ -128,11 +150,10 @@ export default function Busca() {
           Busca Global
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Pesquise em normas, FAQ, glossário e checklist ao mesmo tempo
+          Pesquise em normas, FAQ, glossario e checklist ao mesmo tempo
         </p>
       </div>
 
-      {/* Campo de busca */}
       <div className="relative">
         <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
@@ -140,12 +161,11 @@ export default function Busca() {
           autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por CBS, split payment, alíquota zero, saúde..."
+          placeholder="Buscar por ICMS SP, ISS, NFS-e, CBS, Simples Nacional..."
           className="w-full pl-12 pr-4 py-3.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white shadow-sm"
         />
       </div>
 
-      {/* Filtros por fonte */}
       {query.trim().length >= 2 && (
         <div className="flex flex-wrap gap-2">
           <button
@@ -161,6 +181,7 @@ export default function Busca() {
           {FONTES.map(({ id, label, icon: Icon }) => {
             const count = contagens[id] || 0
             if (!count) return null
+
             return (
               <button
                 key={id}
@@ -179,34 +200,34 @@ export default function Busca() {
         </div>
       )}
 
-      {/* Resultados */}
       {query.trim().length < 2 ? (
         <div className="text-center py-20 text-slate-400">
           <Search size={48} className="mx-auto mb-3 opacity-20" />
           <p className="font-medium text-slate-500">Digite pelo menos 2 caracteres para buscar</p>
           <p className="text-sm mt-1">
-            {INDICE.length} itens indexados em {FONTES.length} seções
+            {INDICE.length} itens indexados em {FONTES.length} secoes
           </p>
         </div>
       ) : resultados.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <Search size={40} className="mx-auto mb-3 opacity-20" />
           <p className="font-medium text-slate-500">Nenhum resultado para "{query}"</p>
-          <p className="text-sm mt-1">Tente termos como: CBS, IBS, split payment, cesta básica, alíquota zero</p>
+          <p className="text-sm mt-1">Tente termos como: ICMS SP, ISS, NFS-e, CBS, eSocial, Simples Nacional</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {resultados.map((item, i) => {
-            const f = fonteInfo(item.fonte)
-            const Icon = f?.icon || FileText
+          {resultados.map((item, index) => {
+            const fonte = fonteInfo(item.fonte)
+            const Icon = fonte?.icon || FileText
+
             return (
               <Link
-                key={i}
-                to={f?.rota || '/'}
+                key={index}
+                to={fonte?.rota || '/'}
                 className="block bg-white rounded-xl border border-slate-200 shadow-sm p-4 hover:border-brand-300 hover:shadow-md transition-all group"
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${f?.cor || 'bg-slate-100 text-slate-600'}`}>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${fonte?.cor || 'bg-slate-100 text-slate-600'}`}>
                     <Icon size={14} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -221,7 +242,7 @@ export default function Busca() {
                     </p>
                     {item.tags?.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {item.tags.slice(0, 4).map((tag) => (
+                        {item.tags.slice(0, 5).map((tag) => (
                           <span key={tag} className="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded">
                             {tag}
                           </span>
